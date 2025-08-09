@@ -36,6 +36,7 @@ interface LoggedInUser {
 }
 
 const app = express();
+app.set('trust proxy', 1);
 const MemoryStore = memoryStore(session);
 
 const {
