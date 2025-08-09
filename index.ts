@@ -8,15 +8,17 @@ import https from 'https';
 import http from 'http';
 import fs from 'fs';
 
-import express from 'express';
-import session from 'express-session';
-import memoryStore from 'memorystore';
-import cors from 'cors';
-import dotenv from 'dotenv';
+const express = require('express');
+const session = require('express-session');
+const memoryStore = require('memorystore');
+const cors = require('cors');
 
-dotenv.config();
+if (process.env.NODE_ENV !== 'production') {
+  const dotenv = require('dotenv');
+  dotenv.config();
+}
 
-import {
+const {
   generateAuthenticationOptions,
   GenerateAuthenticationOptionsOpts,
   generateRegistrationOptions,
@@ -30,7 +32,7 @@ import {
   RegistrationResponseJSON,
   AuthenticationResponseJSON,
   WebAuthnCredential,
-} from '@simplewebauthn/server';
+} = require('@simplewebauthn/server');
 
 interface LoggedInUser {
   id: string;
@@ -75,7 +77,7 @@ declare module 'express-session' {
  * represents the expected URL from which registration or authentication occurs.
  */
 // This value is set at the bottom of page as part of server initialization
-export let expectedOrigin = '';
+let expectedOrigin = '';
 
 /**
  * 2FA and Passwordless WebAuthn flows expect you to be able to uniquely identify the user that
