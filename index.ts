@@ -24,6 +24,7 @@ import {
   verifyAuthenticationResponse,
   VerifyAuthenticationResponseOpts,
   verifyRegistrationResponse,
+  VerifyRegistrationResponseOpts,
   VerifiedRegistrationResponse,
   VerifiedAuthenticationResponse,
   RegistrationResponseJSON,
