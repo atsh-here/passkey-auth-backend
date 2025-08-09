@@ -18,21 +18,18 @@ dotenv.config();
 
 import {
   generateAuthenticationOptions,
-  generateRegistrationOptions,
-  verifyAuthenticationResponse,
-  verifyRegistrationResponse,
-} from '@simplewebauthn/server';
-import type {
-  AuthenticationResponseJSON,
   GenerateAuthenticationOptionsOpts,
+  generateRegistrationOptions,
   GenerateRegistrationOptionsOpts,
-  RegistrationResponseJSON,
-  VerifiedAuthenticationResponse,
-  VerifiedRegistrationResponse,
+  verifyAuthenticationResponse,
   VerifyAuthenticationResponseOpts,
-  VerifyRegistrationResponseOpts,
+  verifyRegistrationResponse,
+  VerifiedRegistrationResponse,
+  VerifiedAuthenticationResponse,
+  RegistrationResponseJSON,
+  AuthenticationResponseJSON,
   WebAuthnCredential,
-} from '@simplewebauthn/server/types';
+} from '@simplewebauthn/server';
 
 interface LoggedInUser {
   id: string;
@@ -316,7 +313,7 @@ cert
     });
 } else {
   const host = '127.0.0.1';
-  const port = process.env.PORT || 8000;
+  const port = parseInt(process.env.PORT || '8000', 10);
   expectedOrigin = process.env.EXPECTED_ORIGIN || `http://localhost:${port}`;
 
   http.createServer(app).listen(port, host, () => {
