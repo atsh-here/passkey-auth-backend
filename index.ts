@@ -310,7 +310,7 @@ cert
       console.log(`🚀 Server ready at ${expectedOrigin} (${host}:${port})`);
     });
 } else {
-  const host = '127.0.0.1';
+  const host = '0.0.0.0';
   const port = parseInt(process.env.PORT || '8000', 10);
   expectedOrigin = process.env.EXPECTED_ORIGIN || `http://localhost:${port}`;
 
