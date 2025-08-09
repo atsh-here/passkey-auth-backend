@@ -44,7 +44,10 @@ const {
   RP_ID = 'localhost',
 } = process.env;
 
-app.use(cors());
+app.use(cors({
+  origin: process.env.EXPECTED_ORIGIN,
+  credentials: true,
+}));
 app.use(express.json());
 app.use(
   session({
@@ -54,6 +57,8 @@ app.use(
     cookie: {
       maxAge: 86400000,
       httpOnly: true, // Ensure to not expose session cookies to clientside scripts
+      sameSite: 'none',
+      secure: true,
     },
     store: new MemoryStore({
       checkPeriod: 86_400_000, // prune expired entries every 24h
