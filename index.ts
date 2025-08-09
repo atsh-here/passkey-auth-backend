@@ -9,8 +9,6 @@ import http from 'http';
 import fs from 'fs';
 
 import express, { Request, Response } from 'express';
-import session from 'express-session';
-import memoryStore from 'memorystore';
 import cors from 'cors';
 
 import {
@@ -37,7 +35,6 @@ interface LoggedInUser {
 
 const app = express();
 app.set('trust proxy', 1);
-const MemoryStore = memoryStore(session);
 
 const {
   ENABLE_CONFORMANCE,
@@ -50,28 +47,6 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json());
-app.use(
-  session({
-    secret: 'secret123',
-    saveUninitialized: true,
-    resave: false,
-    cookie: {
-      maxAge: 86400000,
-      httpOnly: true, // Ensure to not expose session cookies to clientside scripts
-      sameSite: 'none',
-      secure: true,
-    },
-    store: new MemoryStore({
-      checkPeriod: 86_400_000, // prune expired entries every 24h
-    }),
-  }),
-);
-
-declare module 'express-session' {
-  interface SessionData {
-    currentChallenge?: string;
-  }
-}
 
 /**
  * RP ID represents the "scope" of websites on which a credential should be usable. The Origin
@@ -148,12 +123,6 @@ app.get('/generate-registration-options', async (req: Request, res: Response) =>
 
   const options = await generateRegistrationOptions(opts);
 
-  /**
-   * The server needs to temporarily remember this value for verification, so don't lose it until
-   * after you verify the registration response.
-   */
-  req.session.currentChallenge = options.challenge;
-
   res.send(options);
 });
 
@@ -162,14 +131,14 @@ app.post('/verify-registration', async (req: Request, res: Response) => {
 
   const user = inMemoryUserDB[loggedInUserId];
 
-  const expectedChallenge = req.session.currentChallenge;
+  const { challenge } = body;
 
   let verification: VerifiedRegistrationResponse;
   try {
     const rpID = process.env.RP_ID || req.hostname;
     const opts: VerifyRegistrationResponseOpts = {
       response: body,
-      expectedChallenge: `${expectedChallenge}`,
+      expectedChallenge: challenge,
       expectedOrigin,
       expectedRPID: rpID,
       requireUserVerification: false,
@@ -202,8 +171,6 @@ app.post('/verify-registration', async (req: Request, res: Response) => {
     }
   }
 
-  req.session.currentChallenge = undefined;
-
   res.send({ verified });
 });
 
@@ -233,13 +200,6 @@ app.get('/generate-authentication-options', async (req: Request, res: Response) 
 
   const options = await generateAuthenticationOptions(opts);
 
-  /**
-   * The server needs to temporarily remember this value for verification, so do
-n't lose it until
-   * after you verify the authentication response.
-   */
-  req.session.currentChallenge = options.challenge;
-
   res.send(options);
 });
 
@@ -248,7 +208,7 @@ app.post('/verify-authentication', async (req: Request, res: Response) => {
 
   const user = inMemoryUserDB[loggedInUserId];
 
-  const expectedChallenge = req.session.currentChallenge;
+  const { challenge } = body;
 
   let dbCredential: WebAuthnCredential | undefined;
   // "Query the DB" here for a credential matching `cred.id`
@@ -270,7 +230,7 @@ app.post('/verify-authentication', async (req: Request, res: Response) => {
     const rpID = process.env.RP_ID || req.hostname;
     const opts: VerifyAuthenticationResponseOpts = {
       response: body,
-      expectedChallenge: `${expectedChallenge}`,
+      expectedChallenge: challenge,
       expectedOrigin,
       expectedRPID: rpID,
       credential: dbCredential,
@@ -289,8 +249,6 @@ app.post('/verify-authentication', async (req: Request, res: Response) => {
     // Update the credential's counter in the DB to the newest count in the authentication
     dbCredential.counter = authenticationInfo.newCounter;
   }
-
-  req.session.currentChallenge = undefined;
 
   res.send({ verified });
 });
