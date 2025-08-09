@@ -8,17 +8,17 @@ import https from 'https';
 import http from 'http';
 import fs from 'fs';
 
-const express = require('express');
-const session = require('express-session');
-const memoryStore = require('memorystore');
-const cors = require('cors');
+import express, { Request, Response } from 'express';
+import session from 'express-session';
+import memoryStore from 'memorystore';
+import cors from 'cors';
 
 if (process.env.NODE_ENV !== 'production') {
-  const dotenv = require('dotenv');
+  const dotenv = await import('dotenv');
   dotenv.config();
 }
 
-const {
+import {
   generateAuthenticationOptions,
   GenerateAuthenticationOptionsOpts,
   generateRegistrationOptions,
@@ -32,7 +32,7 @@ const {
   RegistrationResponseJSON,
   AuthenticationResponseJSON,
   WebAuthnCredential,
-} = require('@simplewebauthn/server');
+} from '@simplewebauthn/server';
 
 interface LoggedInUser {
   id: string;
@@ -101,7 +101,7 @@ const inMemoryUserDB: { [loggedInUserId: string]: LoggedInUser } = {
 /**
  * Registration (a.k.a. "Registration")
  */
-app.get('/generate-registration-options', async (req, res) => {
+app.get('/generate-registration-options', async (req: Request, res: Response) => {
   const user = inMemoryUserDB[loggedInUserId];
 
   const {
@@ -156,7 +156,7 @@ app.get('/generate-registration-options', async (req, res) => {
   res.send(options);
 });
 
-app.post('/verify-registration', async (req, res) => {
+app.post('/verify-registration', async (req: Request, res: Response) => {
   const body: RegistrationResponseJSON = req.body;
 
   const user = inMemoryUserDB[loggedInUserId];
@@ -209,7 +209,7 @@ app.post('/verify-registration', async (req, res) => {
 /**
  * Login (a.k.a. "Authentication")
  */
-app.get('/generate-authentication-options', async (req, res) => {
+app.get('/generate-authentication-options', async (req: Request, res: Response) => {
   // You need to know the user by this point
   const user = inMemoryUserDB[loggedInUserId];
 
@@ -242,7 +242,7 @@ n't lose it until
   res.send(options);
 });
 
-app.post('/verify-authentication', async (req, res) => {
+app.post('/verify-authentication', async (req: Request, res: Response) => {
   const body: AuthenticationResponseJSON = req.body;
 
   const user = inMemoryUserDB[loggedInUserId];
